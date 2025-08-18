@@ -1,0 +1,12 @@
+---
+- name: Provision the consul servers
+  import_playbook: consul-servers.yml
+
+- name: Provision the consul clients
+  import_playbook: consul-clients.yml
+
+- name: Provision the nomad servers
+  import_playbook: nomad-servers.yml
+
+- name: Provision the nomad workers
+  import_playbook: nomad-workers.yml

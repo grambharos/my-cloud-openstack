@@ -1,0 +1,110 @@
+# OS Generated Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE and Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Security - Keys and Certificates
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cer
+*.pub
+id_rsa*
+*.ppk
+
+# Security - Secrets and Passwords
+*password*
+*secret*
+*credential*
+*.env
+*.env.*
+.env.local
+.env.*.local
+
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform/
+.terraform.lock.hcl
+crash.log
+crash.*.log
+terraform.rc
+
+# Ansible
+*.retry
+.vault_pass
+vault_password_file
+
+# Logs
+*.log
+logs/
+*.out
+
+# Temporary Files
+*.tmp
+*.temp
+.cache/
+.tmp/
+.claude/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Configuration Files with Sensitive Data
+config.json
+settings.json
+*config*.yaml
+*config*.yml
+application.properties
+database.yml
+
+# Backup Files
+*.bak
+*.backup
+*.old
+*.orig
+
+# Mac
+.AppleDouble
+.LSOverride

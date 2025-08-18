@@ -1,0 +1,20 @@
+# domain = FQDN_REVERSE (PTR record)
+# ansible-playbook  $PERSONAL/my-openstack/3_remove_zone_slave.yaml --extra-vars "domain=<FQDN_REVERSE>"
+# ansible-playbook ${CLOUD_GIT_DIR}/ansible/cleanup/dns_slave_zone.yaml --extra-vars "domain=24.32.10.in-addr.arpa"
+---
+- name: PowerDNS Remove domain from PowerDNS Slaves
+  hosts:
+    - "*/pdns-slave"
+    - "*/pdns-pub"
+  become_method: sudo
+  become: True
+  gather_facts: False
+  tasks:
+
+  - name: Check if {{ domain }} still exists on PowerDNS Slave
+    shell: pdnsutil list-zone "{{ domain }}"
+    register: zone_slave_exists
+
+  - name: Remove {{ domain }}  from PowerDNS Slave
+    shell: pdnsutil delete-zone "{{ domain }}"
+    when: zone_slave_exists.rc == 0

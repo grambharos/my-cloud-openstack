@@ -1,0 +1,1 @@
+https://github.com/knetsolutions/learn-terraform-with-openstack/blob/master/terraform_exercises_part1.md

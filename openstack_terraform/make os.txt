@@ -1,0 +1,61 @@
+make centos-galera
+
+Master galera-1
+Slave galera-2
+Slave galera-3
+
+
+On all 3 centos-galera servers: Delete the file /etc/percona-xtradb-cluster.conf.d/wsrep.conf
+On centos-galera-1: systemctl start mysql@bootstrap.service
+On centos-galera-2 and centos-galera-3: systemctl start mysql
+On centos-galera-1: systemctl restart mysql@bootstrap.service
+-----------------------------------------------------------------------------------------
+keystone os
+
+vi /etc/yum.repos.d/epel.repo
+exclude=nodejs*,puppet*
+yum -y install nodejs
+
+Change
+/Users/grambharos/git/ecg-cloud-puppet-openstack ==> branch kilo
+get pull
+grep -R uwsgi-plugin-python *
+grep -R text *
+
+vi manifests/profile/centos_keystone/install.pp ==>
+uwsgi-plugin-python2
+
+cd /git/terraform/dev
+set-ams1-dev
+make update
+
+on keystone os
+puppet agent -t
+
+All sort of issues but eventually it worked again (Bas tweaked it)
+
+
+-----------------------------------------------------------------------------------------
+mysql
+show status like '%wsrep%';
+SHOW GLOBAL STATUS LIKE 'wsrep_cluster_state_uuid' \G
+SHOW GLOBAL STATUS LIKE 'wsrep_cluster_conf_id';
+SHOW GLOBAL STATUS LIKE 'wsrep_local_state_comment';
+SHOW STATUS LIKE 'wsrep_local_send_queue_avg';
+SHOW STATUS LIKE 'wsrep_flow_control_paused';
+
+
+Check that mysqld is running and that the socket: '/var/lib/mysql/mysql.sock' exists!
+socket = /var/lib/mysql/mysql.sock ==> not found
+yum remove mysql
+puppet agent -vt
+service mysql start
+cat /var/log/mysqld.log | grep password
+mysql -u root -p
+mysqld_safe --skip-grant-tables &
+select User, Host from mysql.user;
+
+Mysql Galera not working
+ touched/chown the files; ==>  chown -R mysql:mysql /var/lib/mysql  (-1, -2, -3)
+ started bootstrap on galera-1; ==>  systemctl start mysql@bootstrap.service (-1)
+ then just did systemctl start mysql on the -2 and -3. and all==> systemctl start mysql

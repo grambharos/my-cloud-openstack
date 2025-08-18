@@ -1,0 +1,1 @@
+for i in `virsh list --all | awk '{print $2}'`; do `virsh undefine $i`;done

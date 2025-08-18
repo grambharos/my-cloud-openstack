@@ -1,0 +1,93 @@
+heat_template_version: 2013-05-23
+
+description: Launch groups of VMs with a specific naming convention.
+
+parameters:
+  key_name:
+    description: Name of an existing PublicKey to enable SSH access to the instances.
+    type: string
+    default: secloud
+  instance_flavor:
+    description: VM Flavor
+    type: string
+    default: m3.medium
+  instance_image:
+    description: VM Image
+    type: string
+    default: centos-6.5-expander
+  network:
+    type: string
+    label: Network UUID
+    description: Network to attach to
+    default: f5ea5eac-0a96-4d8a-bc6c-2725c11e8f8c
+    constraints:
+      - allowed_values: [ f5ea5eac-0a96-4d8a-bc6c-2725c11e8f8c, 9a219b27-55d6-4366-8877-230113be078e ]
+        description: Must be one of the networks associated with the tenant
+  num_workers:
+    description: Number of Workers to launch
+    type: number
+    constraints:
+      - range: { min: 1, max: 20 }
+    default: 3
+  admin_password:
+    description: Admin password for the new VMs
+    type: string
+    default: Qaz123wsx
+
+resources:
+  server_group:
+    # look at OS::Heat::InstanceGroup
+    type: OS::Heat::ResourceGroup
+    properties:
+      count: { get_param: num_workers }
+      resource_def:
+        type: OS::Nova::Server
+        properties:
+          admin_pass: { get_param: admin_password }
+          admin_user: root
+          flavor: { get_param: instance_flavor }
+          image: { get_param: instance_image }
+          key_name: { get_param: key_name }
+          name: { "Fn::Join" : [ "-", [ { get_param: "OS::stack_name" }, "HOST%(slave-num)" ]] }
+          networks:
+            - network: { get_param: network }
+
+# Desire: instance names, fixed & floating IPs, bonus - grouped by instance
+outputs:
+#  all_values:
+#    # Fails
+#    description: List of all values
+#    value: { get_attr: [server_group, value] }
+#  server_group_addresses:
+#    # Fails: resources needs to be OS::Heat::InstanceGroup
+#    description: List of resources
+#    value: { get_attr: [server_group, InstanceList] }
+  instance_fixed_ips:
+    # Works: keep - deprecated - get networks to work
+    description: First Fixed IP address of the deployed compute instances
+    value: { get_attr: [server_group, first_address] }
+#  instance_454_ip:
+#    # NOT working: returns no data - Need >= Juno
+#    description: Floating IP address on net-454 of the deployed compute instances
+#    value: { get_attr: [server_group, networks, net-454, 0] }
+#  instance_floating_ip:
+#    # NOT working: returns no data - Need >= Juno
+#    description: Floating IP address of the deployed compute instance
+#    value: { get_attr: [server_group, networks, nova, 0] }
+  instance_names:
+    # Works: vm instance names
+    description: Instance names on the hypervisors of the deployed instances
+    value: { get_attr: [server_group, instance_name] }
+  instance_show:
+    # Works: >= Juno should be able to specify: OS-EXT-SRV-ATTR:hypervisor_hostname, name, OS-EXT-SRV-ATTR:host, id, addresses<network>, 
+    description: All details
+    value: { get_attr: [server_group, show] }
+#  instance_show_id:
+#    # NOT working: returns no data - Need >= Juno
+#    description: Instance IDs
+#    value: { get_attr: [server_group, show, id, 0] }
+  networks:
+    # Works: good for testing
+    description: List of networks
+    value: { get_attr: [server_group, networks] }
+

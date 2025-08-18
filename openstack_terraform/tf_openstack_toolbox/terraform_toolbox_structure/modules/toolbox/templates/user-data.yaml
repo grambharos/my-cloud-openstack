@@ -1,0 +1,11 @@
+#cloud-config
+
+packages:
+  - puppet
+puppet:
+  install: true
+  conf:
+    agent:
+      server: ${puppet_server}
+      ca_server: ${puppet_ca_server}
+      environment: ${puppet_environment}

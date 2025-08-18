@@ -1,0 +1,1 @@
+https://gist.github.com/devops-school/10e93c4b2e753ed36772ff15cfe995f6

@@ -1,0 +1,7 @@
+---
+
+- name: Restart nomad
+  service:
+    name: nomad
+    state: restarted
+  listen: nomad_reconfigured

@@ -1,0 +1,7 @@
+---
+- name: Provision nomad workers
+  hosts: nomad_workers
+  become: true
+  roles:
+    - nomad-worker
+

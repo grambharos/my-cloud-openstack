@@ -1,0 +1,39 @@
+---
+
+- name: Add the HashiCorp yum repository
+  get_url:
+    url: https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
+    dest: /etc/yum.repos.d/hashicorp.repo
+
+- name: Add the Docker yum repository
+  get_url:
+    url: https://download.docker.com/linux/centos/docker-ce.repo
+    dest: /etc/yum.repos.d/docker-ce.repo
+
+- name: Install docker
+  yum:
+    name: ["docker-ce", "docker-ce-cli","containerd.io"]
+    state: present
+
+- name: Ensure docker starts at boot
+  service:
+    name: docker
+    enabled: yes
+    state: started
+    
+- name: Install nomad
+  yum:
+    name: nomad
+    state: present
+
+- name: Configure nomad as a client
+  copy:
+    src: nomad.hcl
+    dest: /etc/nomad.d/nomad.hcl
+  notify:
+   - nomad_reconfigured
+
+- name: Ensure service is enabled
+  service:
+    name: nomad
+    enabled: true

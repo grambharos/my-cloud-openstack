@@ -1,0 +1,23 @@
+---
+
+- name: Add the HashiCorp yum repository
+  get_url:
+    url: https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
+    dest: /etc/yum.repos.d/hashicorp.repo
+
+- name: Install nomad
+  yum:
+    name: nomad
+    state: present
+
+- name: Configure nomad as a server
+  copy:
+    src: nomad.hcl
+    dest: /etc/nomad.d/nomad.hcl
+  notify:
+   - nomad_reconfigured
+
+- name: Ensure service is enabled
+  service:
+    name: nomad
+    enabled: true

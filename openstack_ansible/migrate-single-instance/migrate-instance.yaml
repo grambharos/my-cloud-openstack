@@ -1,0 +1,97 @@
+---
+- name: Check source compute and stop instance
+  hosts: localhost
+  vars:
+    exec_all: false
+  tasks:
+    - name: check source compute
+      shell: nova show {{ uuid }} | awk '$2 == "OS-EXT-SRV-ATTR:hypervisor_hostname" {print $4}'
+      become: False
+      delegate_to: localhost
+      register: source
+      when: exec_all
+
+    - name: create inventory with source compute
+      add_host:
+        hostname : "{{source.stdout}}"
+        groups:
+          - src_hv
+
+    - name: create inventory with destination compute
+      add_host:
+        hostname : "{{destination}}"
+        groups:
+          - dst_hv
+
+    - name: stop instance
+      shell: nova stop {{ uuid }}
+      become: False
+      delegate_to: localhost
+      register: stopped
+      when: exec_all
+
+    - name: check instance status until it's in a SHUTOFF state
+      shell: nova show {{ uuid }} | awk '$2 == "status" {print $4}' | grep -i SHUTOFF
+      become: False
+      delegate_to: localhost
+      register: shell_res
+      retries: 5
+      delay: 5
+      until: ("SHUTOFF" in shell_res.stdout)
+      when: exec_all
+
+- name: Transfer instance data from source {{ hostvars['localhost']['source']['stdout'] }} to {{ destination }}
+  hosts: src_hv
+  become: true
+  vars:
+    exec_all: false
+  tasks:
+    - name: Rsync files from /var/lib/nova/instances/{{ uuid }}
+      shell: sudo rsync -r --progress /var/lib/nova/instances/{{uuid}} -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /var/lib/nova/.ssh/nova.priv" nova@{{ destination }}:/var/lib/nova/instances/migrations
+      register: rsync_status
+      failed_when: rsync_status.rc != 0
+      when: exec_all
+
+- name: Move instance data on {{ destination }} from migrations directory
+  hosts: dst_hv
+  become: true
+  vars:
+    exec_all: false
+    dest_all: false
+  tasks:
+    - name: chown root:root /var/lib/nova/instances/migrations/{{uuid}}/ Items
+      shell: |
+        chown root:root /var/lib/nova/instances/migrations/{{uuid}}/disk
+        chown root:root /var/lib/nova/instances/migrations/{{uuid}}/disk.local
+        chown root:root /var/lib/nova/instances/migrations/{{uuid}}/console.log
+      register: chown
+      when: exec_all or dest_all
+
+    - name: mv /var/lib/nova/instances/migrations/{{uuid}} /var/lib/nova/instances/
+      shell: mv /var/lib/nova/instances/migrations/{{uuid}} /var/lib/nova/instances/
+      register: moved
+      when: exec_all or dest_all
+
+- name: On Controller node execute changes
+  hosts: controller
+  become: true
+  vars:
+    exec_all: false
+    controller_all: false
+  tasks:
+    - name: Update instance record {{ uuid }} in mysql to point to {{ destination }}
+      shell: mysql nova -e "update instances set node='{{ destination }}', host='{{ destination }}' where uuid='{{ uuid }}' LIMIT 1;"
+      register: mysql
+      when: exec_all or controller_all
+
+- name: Start instance with {{ uuid }} on the new destination
+  hosts: localhost
+  vars:
+    exec_all: false
+  tasks:
+    - name: Locate source hv
+      shell: nova start {{ uuid }}
+      become: False
+      delegate_to: localhost
+      register: source
+      when: exec_all

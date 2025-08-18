@@ -1,0 +1,5 @@
+i just cleaned up some nova consistency checks from sensu
+15:27
+showing off some jq fu
+curl -u "enieuwstad:${OS_PASSWORD}" 'https://sensu-ui.cloud.ecg.tools/events' | jq -r ' .[]  | select((.check.name=="check_nova_consistency") and (.check.status>0) and (.client.name|test("ams1"))) | .client.name'
+to get all the failed hosts of a test of a type in a dc (edited) 

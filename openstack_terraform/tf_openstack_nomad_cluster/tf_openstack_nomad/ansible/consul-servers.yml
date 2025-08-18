@@ -1,0 +1,7 @@
+---
+- name: Provision consul servers
+  hosts: consul_servers
+  become: true
+  serial: 1
+  roles:
+    - consul-server

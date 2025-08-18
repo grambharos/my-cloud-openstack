@@ -1,0 +1,17 @@
+# domain = FQDN_FORWARD (A record)
+# ansible-playbook  $PERSONAL/my-openstack/2_remove_zone_master.yaml --extra-vars "domain=<FQDN_FORWARD>"
+---
+- name: PowerDNS Remove domain from master
+  hosts: designate-pdns-master-1.ams5.init1.cloud
+  become_method: sudo
+  become: True
+  gather_facts: False
+
+  tasks:
+    - name: Check if {{ domain }} still exists on PowerDNS Master
+      shell: pdnsutil list-zone "{{ domain }}"
+      register: zone_master_exists
+
+    - name: Remove {{ domain }} from PowerDNS Master
+      shell: pdnsutil delete-zone "{{ domain }}"
+      when: zone_master_exists.rc == 0

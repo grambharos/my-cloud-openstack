@@ -1,0 +1,102 @@
+heat_template_version: 2013-05-23
+# Versions:
+#   2013-05-23 - Icehouse: get_attr get_file get_param get_resource list_join resource_facade str_replace Fn::Select Fn::Base64 Fn::GetAZs Fn::Join Fn::MemberListToMap Fn::Replace Fn::ResourceFacade Fn::Split Ref
+#   2014-10-16 - Juno    : get_attr get_file get_param get_resource list_join resource_facade str_replace Fn::Select
+#   2015-04-30 - Kilo    : get_attr get_file get_param get_resource list_join resource_facade str_replace Fn::Select repeat digest
+# References:
+#  http://docs.openstack.org/developer/heat/template_guide/hot_spec.html  - Template spec
+#  http://docs.openstack.org/developer/heat/template_guide/openstack.html - OpenStack Resource Types
+#  http://docs.openstack.org/developer/heat/template_guide/contrib.html   - OpenStack Resource Types - Contributed - Not enabled by default
+#  http://docs.openstack.org/hot-reference/content/openstack-resource-types.html - Ref list
+#  https://developer.rackspace.com/blog/openstack-orchestration-in-depth-part-1-introduction-to-heat/
+#  https://developer.rackspace.com/blog/openstack-orchestration-in-depth-part-2-single-instance-deployments/
+#  https://developer.rackspace.com/blog/openstack-orchestration-in-depth-part-3-multi-instance-deployments/
+#  https://developer.rackspace.com/blog/openstack-orchestration-in-depth-part-4-scaling/
+#  https://github.com/openstack/heat-templates - Examples
+#  http://docs.openstack.org/developer/heat/pluginguide.html - Writing new resource types
+#
+# Tools:
+#  https://dev.cloudwatt.com/en/blog/introducing-flame-automatic-heat-template-generation.html
+
+# Pseudo Parameters (use get_param):
+#  OS::stack_name - Stack Name
+#  OS::stack_id   - Stack UUID
+#  OS::project_id - Project/Tenant UUID
+
+# Intrinsic Functions - get values at runtime:
+#  get_attr        : reference an attribute of a resource
+#  get_file        : read a file as a string
+#  get_param       : input
+#  get_resource    : reference another resource within the same template
+#  list_join       : join a list of strings with a delimiter
+#  resource_facade : retrieve resource facade data in the parent template
+#  str_replace     : 
+#  Fn::Select      : From CFN
+#  repeat          : transform a list to a new list based on a template
+#  digest          : digest operations (hashes)
+
+description: Simple template to deploy a single compute instance on a specified network
+
+# parameter_groups:
+
+parameters:
+  flavor:
+    type: string
+    label: Instance Type
+    description: Type of instance (flavor) to be used
+  image_id:
+    type: string
+    label: Image ID
+    description: Image to be used for compute instance
+    default: m1.small
+    constraints:
+       - allowed_values: [ m1.medium, m1.large, m1.xlarge ]
+         description: Value must be one of m1.medium, m1.large or m1.xlarge.
+  key_name:
+    type: string
+    label: Key Name
+    description: Name of key-pair to be used for compute instance
+  network:
+    type: string
+    label: Network UUID
+    description: Network to attach to
+    default: f5ea5eac-0a96-4d8a-bc6c-2725c11e8f8c
+    constraints:
+      - allowed_values: [ f5ea5eac-0a96-4d8a-bc6c-2725c11e8f8c, 9a219b27-55d6-4366-8877-230113be078e ]
+        description: Must be one of the networks associated with the tenant
+#      - allowed_pattern: "([a-z0-9]-){4}[a-z0-9]"
+#        description: Network UUID required
+  num_nodes:
+    description: Number of instances to create
+    type: number
+    constraints:
+      - range: { min: 1, max: 20 }
+        description: 1 to 20 instances can be created
+
+resources:
+  my_instance:
+    type: OS::Nova::Server
+    properties:
+      count: { get_param: num_nodes }
+      flavor: { get_param: flavor }
+      image: { get_param: image_id }
+      key_name: { get_param: key_name }
+      networks:
+        - network: { get_param: network }
+#    metadata:
+#    depends_on: <resource id> or [ <id>, <id>, ... ]
+#    update_policy:
+#    deletion_policy:
+
+outputs:
+  instance_name:
+    description: Name of the instance
+    value: { get_attr: [my_instance, name] }
+  instance_ip:
+    description: IP address of the deployed compute instance
+    value: { get_attr: [my_instance, first_address] }
+  instance_private_ip:
+    description: Private IP address of the deployed compute instance
+    value: { get_attr: [my_instance, networks, private, 0] }
+
+

@@ -1,0 +1,3 @@
+
+for i in $(openstack server list -f value -c ID --project cloud-nonprod);do nova stop $i;done
+for i in `openstack server list -f value -c ID --project cloud-nonprod`; do echo $i; done

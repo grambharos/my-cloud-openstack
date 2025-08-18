@@ -1,0 +1,6 @@
+---
+- name: Provision consul clients
+  hosts: consul_clients
+  become: true
+  roles:
+    - consul-client

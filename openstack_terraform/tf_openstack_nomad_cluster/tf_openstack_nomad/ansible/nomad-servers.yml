@@ -1,0 +1,8 @@
+---
+- name: Provision nomad servers
+  hosts: nomad_servers
+  become: true
+  serial: 1
+  roles:
+    - nomad-server
+

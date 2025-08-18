@@ -1,0 +1,4 @@
+make proxy
+
+Error: Could not start Service[squid]: Execution of '/bin/systemctl start squid' returned 1: Job for squid.service failed because the control process exited with error code. See "systemctl status squid.service" and "journalctl -xe" for details.
+module.supporting_services.openstack_compute_instance_v2.proxy (remote-exec): Error: /Stage[main]/Proxy::Service/Service[squid]/ensure: change from stopped to running failed: Could not start Service[squid]: Execution of '/bin/systemctl start squid' returned 1: Job for squid.service failed because the control process exited with error code. See "systemctl status squid.service" and "journalctl -xe" for details.
